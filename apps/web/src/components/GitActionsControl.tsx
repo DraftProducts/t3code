@@ -1125,6 +1125,21 @@ export default function GitActionsControl({
     setCommitDialogOpen(false);
     discardCommitDraft();
   }, [sourceControlScope]);
+  // A failed commit keeps the draft so reopening the dialog restores it. A success only clears
+  // what it submitted: the user may have reopened the dialog, or moved to another repository
+  // whose own commit is still in flight.
+  const discardCommitDraftAfterCommit = (
+    committed: boolean,
+    submittedScope: typeof sourceControlScope,
+  ) => {
+    if (!committed || commitDialogOpenRef.current) {
+      return;
+    }
+    if (commitDraftScopeRef.current !== submittedScope) {
+      return;
+    }
+    discardCommitDraft();
+  };
   const vcsActionState = useAtomValue(vcsActionManager.stateAtom(sourceControlScope));
   const visibleInlineSuccess = inlineSuccess?.scopeKey === successScopeKey ? inlineSuccess : null;
   let runGitActionWithToast: (input: RunGitActionWithToastInput) => Promise<boolean>;
@@ -1500,6 +1515,7 @@ export default function GitActionsControl({
   const runDialogActionOnNewBranch = async () => {
     if (!isCommitDialogOpen) return;
     const commitMessage = dialogCommitMessage.trim();
+    const submittedScope = sourceControlScope;
 
     setCommitDialogOpen(false);
 
@@ -1510,13 +1526,7 @@ export default function GitActionsControl({
       featureBranch: true,
       skipDefaultBranchPrompt: true,
     });
-    // A failed commit keeps the draft so reopening the dialog restores it.
-    if (!committed) {
-      return;
-    }
-    if (!commitDialogOpenRef.current) {
-      discardCommitDraft();
-    }
+    discardCommitDraftAfterCommit(committed, submittedScope);
   };
 
   const runQuickAction = () => {
@@ -1605,19 +1615,14 @@ export default function GitActionsControl({
   const runDialogAction = async () => {
     if (!isCommitDialogOpen) return;
     const commitMessage = dialogCommitMessage.trim();
+    const submittedScope = sourceControlScope;
     setCommitDialogOpen(false);
     const committed = await runGitActionWithToast({
       action: "commit",
       ...(commitMessage ? { commitMessage } : {}),
       ...(!allSelected ? { filePaths: selectedFiles.map((f) => f.path) } : {}),
     });
-    // A failed commit keeps the draft so reopening the dialog restores it.
-    if (!committed) {
-      return;
-    }
-    if (!commitDialogOpenRef.current) {
-      discardCommitDraft();
-    }
+    discardCommitDraftAfterCommit(committed, submittedScope);
   };
 
   const openChangedFileInEditor = useCallback(

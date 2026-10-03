@@ -6000,6 +6000,32 @@ it.layer(GitManagerTestLayer)("GitManager", (it) => {
     }),
   );
 
+  it.effect("reports the hook exit code when the hook itself runs git", () =>
+    Effect.gen(function* () {
+      const repoDir = yield* makeTempDir("t3code-git-manager-");
+      yield* initRepo(repoDir);
+      NodeFS.writeFileSync(NodePath.join(repoDir, "hook-failure.txt"), "broken\n");
+      // The nested git inherits GIT_TRACE2_EVENT and numbers its own children from zero, so its
+      // child_exit used to be mistaken for the hook's own.
+      NodeFS.writeFileSync(
+        NodePath.join(repoDir, ".git", "hooks", "pre-commit"),
+        "#!/bin/sh\ngit -c alias.t3probe='!exit 0' t3probe\nexit 7\n",
+        { mode: 0o755 },
+      );
+
+      const { manager } = yield* makeManager();
+      const errorMessage = yield* runStackedAction(manager, {
+        cwd: repoDir,
+        action: "commit",
+      }).pipe(
+        Effect.flip,
+        Effect.map((error) => error.message),
+      );
+
+      expect(errorMessage).toContain("The pre-commit hook rejected the commit (exit code 7).");
+    }),
+  );
+
   it.effect("create_pr emits only the PR phase when the branch is already pushed", () =>
     Effect.gen(function* () {
       const repoDir = yield* makeTempDir("t3code-git-manager-");

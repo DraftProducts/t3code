@@ -547,10 +547,14 @@ const addCurrentSpanEvent = (name: string, attributes: Record<string, unknown>) 
     }),
   );
 
+// GIT_TRACE2_EVENT is inherited by the git processes a hook itself runs, and child_id only
+// counts children within one process, so it alone lets a nested git's child_exit consume the
+// outer hook's entry. sid is per-process, so the pair identifies the child.
 function trace2ChildKey(record: Record<string, unknown>): string | null {
   const childId = record.child_id;
   if (typeof childId === "number" || typeof childId === "string") {
-    return String(childId);
+    const sid = record.sid;
+    return typeof sid === "string" && sid.length > 0 ? `${sid}\n${childId}` : String(childId);
   }
   const hookName = record.hook_name;
   return typeof hookName === "string" && hookName.trim().length > 0 ? hookName.trim() : null;
