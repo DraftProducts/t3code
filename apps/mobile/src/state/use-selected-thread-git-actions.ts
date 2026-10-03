@@ -365,6 +365,12 @@ export function useSelectedThreadGitActions() {
                 type: "error",
                 title: "Thread branch not updated",
                 description: message,
+                // Single notification slot: this replaces the success one, so a PR the action
+                // just opened would otherwise lose its only link.
+                prUrl:
+                  result.value.toast.cta.kind === "open_pr"
+                    ? result.value.toast.cta.url
+                    : undefined,
               });
             }
           } else {
