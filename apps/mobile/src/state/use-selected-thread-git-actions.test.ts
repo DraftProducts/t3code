@@ -211,10 +211,11 @@ describe("thread Git mutation permissions", () => {
             newBranch: "feature",
           }),
         ).toBeNull();
+      // The commit itself landed, so it reports success and the commit sheet drops its draft.
       if (operation === "commit")
         expect(
           await actions.onRunSelectedThreadGitAction({ action: "commit", featureBranch: true }),
-        ).toBeNull();
+        ).not.toBeNull();
       if (operation === "worktree") expect(state.worktrees).toEqual(["/repo-worktree"]);
       else expect(state.branch).toBe("feature");
       expect(state.thread.branch).toBe("main");

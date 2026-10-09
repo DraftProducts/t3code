@@ -426,6 +426,7 @@ export function useSelectedThreadGitActions() {
                     ? result.value.toast.cta.url
                     : undefined,
               });
+              return result;
             }
           } else {
             await refreshSelectedThreadGitStatus({ quiet: true, cwd });
