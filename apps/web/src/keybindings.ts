@@ -217,12 +217,6 @@ export function formatShortcutKeyLabel(key: string): string {
   return key.slice(0, 1).toUpperCase() + key.slice(1);
 }
 
-/**
- * One label per key of the chord, modifiers first. Callers that render each key
- * separately (the keybindings settings pills) need the parts; everything else
- * wants `formatShortcutLabel`, which joins them the way the platform writes
- * chords.
- */
 export function formatShortcutLabelParts(
   shortcut: KeybindingShortcut,
   platform = navigator.platform,

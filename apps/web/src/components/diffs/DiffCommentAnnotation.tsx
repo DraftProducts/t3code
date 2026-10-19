@@ -116,7 +116,7 @@ export function DiffCommentAnnotation({
       />
       <div className="mt-1.5 flex items-center gap-1">
         <span className="mr-auto text-3xs text-muted-foreground/70">
-          {isMacPlatform(navigator.platform) ? "\u2318Enter" : "Ctrl+Enter"} to send
+          {isMacPlatform(navigator.platform) ? "⌘Enter" : "Ctrl+Enter"} to send
         </span>
         <Button variant="ghost-muted" size="xs" onClick={onCancel}>
           Cancel

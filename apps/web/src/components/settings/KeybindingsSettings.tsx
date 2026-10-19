@@ -78,10 +78,11 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { useAtomCommand } from "../../state/use-atom-command";
 
 function KeybindingPill({ shortcut }: { shortcut: KeybindingShortcut }) {
+  const parts = formatShortcutLabelParts(shortcut);
   return (
     <KbdGroup>
-      {formatShortcutLabelParts(shortcut).map((part) => (
-        <Kbd key={part}>{part}</Kbd>
+      {parts.map((part, index) => (
+        <Kbd key={index === parts.length - 1 ? "key" : part}>{part}</Kbd>
       ))}
     </KbdGroup>
   );
